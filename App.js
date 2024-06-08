@@ -1,67 +1,126 @@
-import React from 'react';
+import React, { useState } from "react";
 import {
+  Image,
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
-  SectionList,
-  StatusBar,
-} from 'react-native';
+  TouchableOpacity,
+  Platform,
+} from "react-native";
+import logo from "./assets/logo.png";
+import * as ImagePicker from "expo-image-picker";
+import * as Sharing from "expo-sharing";
 
-const DATA = [
-  {
-    title: 'Main dishes',
-    data: ['Pizza', 'Burger', 'Risotto'],
-  },
-  {
-    title: 'Sides',
-    data: ['French Fries', 'Onion Rings', 'Fried Shrimps'],
-  },
-  {
-    title: 'Drinks',
-    data: ['Water', 'Coke', 'Beer'],
-  },
-  {
-    title: 'Desserts',
-    data: ['Cheese Cake', 'Ice Cream'],
-  },
-];
+export default function App() {
+  const [localUri, setLocalUri] = useState("");
+  // 异步获取图片
+  let openImagePickerAsync = async () => {
+    // 首先获取权限
+    let permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-const App = () => (
-  <SafeAreaView style={styles.container}>
-    <SectionList
-      sections={DATA}
-      keyExtractor={(item, index) => item + index}
-      renderItem={({item}) => (
-        <View style={styles.item}>
-          <Text style={styles.title}>{item}</Text>
-        </View>
-      )}
-      renderSectionHeader={({section: {title}}) => (
-        <Text style={styles.header}>{title}</Text>
-      )}
-    />
-  </SafeAreaView>
-);
+    // 如果权限获取失败
+    if (permissionResult.granted === false) {
+      alert("需要文件媒体读写的权限！");
+      return;
+    }
+
+    // 没有进入上面的 if，说明权限获取成功
+    // 异步打开图片选择器，并且返回用户的图片选择结果
+    let pickerResult = await ImagePicker.launchImageLibraryAsync();
+
+
+    // 如果用户没有选择图片
+    if (pickerResult.canceled === true) {
+      // 进入此 if，说明用户没有选择图片
+      return;
+    }
+
+    // 没有进入上面的 if，说明用户选择了图片
+    setLocalUri(pickerResult.assets[0].uri);
+  };
+
+  // 分享图片
+  let openShareDialogAsync = async () => {
+    if (Platform.OS === "web") {
+      alert(`Uh oh, sharing isn't available on your platform`);
+      return;
+    }
+
+    await Sharing.shareAsync(localUri);
+  };
+
+  // 返回首页
+  let goBack = () => {
+    setLocalUri("");
+  };
+
+  // 如果 selectedImage 里面有内容，就显示图片
+  if (localUri) {
+    return (
+      <View style={styles.container}>
+        <Image source={{ uri: localUri }} style={styles.thumbnail} />
+
+        <TouchableOpacity onPress={openShareDialogAsync} style={styles.button}>
+          <Text style={styles.buttonText}>分享照片</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={goBack} style={styles.button}>
+          <Text style={styles.buttonText}>重新选择</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.container}>
+      <Image source={logo} style={styles.logo} />
+
+      <Text style={styles.instructions}>
+        按下按钮，与朋友分享手机中的照片！
+      </Text>
+
+      <TouchableOpacity onPress={openImagePickerAsync} style={styles.button}>
+        <Text style={styles.buttonText}>选择照片</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: StatusBar.currentHeight,
-    marginHorizontal: 16,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  item: {
-    backgroundColor: '#f9c2ff',
-    padding: 20,
-    marginVertical: 8,
+  logo: {
+    width: 305,
+    height: 159,
+    marginBottom: 10,
   },
-  header: {
-    fontSize: 32,
-    backgroundColor: '#fff',
+  instructions: {
+    color: "#888",
+    fontSize: 18,
+    marginHorizontal: 15,
+    textAlign: "center",
+    marginBottom: 10,
   },
-  title: {
-    fontSize: 24,
+  button: {
+    backgroundColor: "blue",
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "#fff",
+  },
+  thumbnail: {
+    width: 300,
+    height: 300,
+    resizeMode: "contain",
   },
 });
-
-export default App;
