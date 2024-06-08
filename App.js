@@ -1,142 +1,111 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  View,
+  FlatList,
+  Dimensions,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+import { useState, useEffect } from "react";
+import { queryMovies } from "./data/Service";
+import MovieItemCell from "./components/MovieItemCell";
+
+// 获取屏幕的宽度
+export const width = Dimensions.get("window").width;
 
 export default function App() {
-  function onPressHandle() {
-    console.log("OnPress");
+  const data = queryMovies();
+  // 初始化两个该组件的状态变量
+  const [movieList, setMovieList] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+
+  // 模拟发送请求获取数据
+  useEffect(() => {
+    setTimeout(() => {
+      setMovieList(data);
+      setLoaded(true);
+    }, 1000);
+  }, []);
+
+  // 渲染标题
+  function renderTitle() {
+    return (
+      <View style={styles.barStyle}>
+        <Text style={styles.txtStyle}>电影列表1</Text>
+      </View>
+    );
   }
 
-  function onPressInHandle() {
-    console.log("Pressed In");
+  // 加载条
+  function renderLoad() {
+    if (!loaded) {
+      return (
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#268dcd" />
+          <Text
+            style={{
+              color: "#666",
+              paddingLeft: 10,
+            }}
+          >
+            努力加载中
+          </Text>
+        </View>
+      );
+    }
   }
 
-  function onPressOutHandle() {
-    console.log("Pressed Out");
-  }
-
-  function onLongPressHandle() {
-    console.log("Long Pressed");
+  // 渲染列表
+  function renderList() {
+    return (
+      <FlatList
+        data={movieList}
+        renderItem={({ item }) => (
+          <MovieItemCell
+            movie={item}
+            onPress={() => {
+              alert("点击的电影名：" + item.title);
+            }}
+          />
+        )}
+        keyExtractor={(item) => item.id}
+      />
+    );
   }
 
   return (
-    <View style={styles.container}>
-      <Pressable
-        onPress={onPressHandle}
-        onPressIn={onPressInHandle}
-        onPressOut={onPressOutHandle}
-        onLongPress={onLongPressHandle}
-        style={({ pressed }) => {
-          if (pressed) {
-            return styles.pressdStyle;
-          } else {
-            return styles.unPressdStyle;
-          }
-        }}
-        hitSlop={{ top: 220, bottom: 20, left: 20, right: 20 }}
-        pressRetentionOffset={{ top: 100 }}
-      >
-        {/* 可以根据是否按压来决定 Text 的样式 */}
-        {({ pressed }) => {
-          if (pressed) {
-            return (
-              <Text
-                style={{
-                  textAlign: "center",
-                  color: "white",
-                  lineHeight: 100,
-                }}
-              >
-                Pressd
-              </Text>
-            );
-          } else {
-            return (
-              <Text
-                style={{
-                  textAlign: "center",
-                }}
-              >
-                unPress
-              </Text>
-            );
-          }
-        }}
-      </Pressable>
+    <View style={styles.flex}>
+      {/* 渲染标题 */}
+      {renderTitle()}
+      {/* 渲染加载条 */}
+      {renderLoad()}
+      {/* 渲染列表 */}
+      {renderList()}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+    backgroundColor: "#268dcd",
+  },
   container: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5FCFF",
+    flexDirection: "row",
   },
-  pressdStyle: {
-    backgroundColor: "rgb(210, 230, 255)",
-    height: 100,
-    lineHeight: "100",
+  barStyle: {
+    height: 48,
+    width: width,
+    justifyContent: "center",
+    backgroundColor: "#268dcd",
   },
-  unPressdStyle: {
-    backgroundColor: "#ccc",
+  txtStyle: {
+    color: "#fff",
+    textAlign: "center",
+    fontSize: 18,
   },
 });
-
-// 下面是官网的示例
-// import React, { useState } from "react";
-// import { Pressable, StyleSheet, Text, View } from "react-native";
-
-// const App = () => {
-//   const [timesPressed, setTimesPressed] = useState(0);
-
-//   let textLog = "";
-//   if (timesPressed > 1) {
-//     textLog = timesPressed + "x onPress";
-//   } else if (timesPressed > 0) {
-//     textLog = "onPress";
-//   }
-
-//   return (
-//     <View style={styles.container}>
-//       <Pressable
-//         onPress={() => {
-//           setTimesPressed((current) => current + 1);
-//         }}
-//         style={({ pressed }) => [
-//           {
-//             backgroundColor: pressed ? "rgb(210, 230, 255)" : "white",
-//           },
-//           styles.wrapperCustom,
-//         ]}
-//       >
-//         {({ pressed }) => (
-//           <Text style={styles.text}>{pressed ? "Pressed!" : "Press Me"}</Text>
-//         )}
-//       </Pressable>
-//       <View style={styles.logBox}>
-//         <Text testID="pressable_press_console">{textLog}</Text>
-//       </View>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: "center",
-//   },
-//   text: {
-//     fontSize: 16,
-//   },
-//   wrapperCustom: {
-//     borderRadius: 8,
-//     padding: 6,
-//   },
-//   logBox: {
-//     padding: 20,
-//     margin: 10,
-//     borderWidth: StyleSheet.hairlineWidth,
-//     borderColor: "#f0f0f0",
-//     backgroundColor: "#f9f9f9",
-//   },
-// });
-
-// export default App;
