@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  SectionList,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { queryMovies, randomRefreshMovies } from "./data/Service";
@@ -18,11 +19,11 @@ let currentPage = 1; // 当前页
 let pageSize = 10; // 每一页加载多少条
 let totalPage = Math.ceil(moviesData.length / pageSize); // 总页数
 
-
 export default function App() {
   const data = queryMovies();
   // 初始化两个该组件的状态变量
   const [movieList, setMovieList] = useState([]);
+  const [sectionData, setSectionData] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
   // 新增一个状态
@@ -36,8 +37,22 @@ export default function App() {
       setMovieList(data);
       setLoaded(true);
     }, 1000);
-  },[]);
+  }, []);
 
+  // 处理 SectionList 数据
+  // 初始化电影数据
+  const displayingMovies = queryMovies(1, 10);
+  const incomingMovies = queryMovies(2, 10);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setSectionData([
+        { title: "正在上映", data: displayingMovies },
+        { title: "即将上映", data: incomingMovies },
+      ]);
+      setLoaded(true);
+    }, 1000);
+  }, []);
 
   // 渲染标题
   function renderTitle() {
@@ -45,6 +60,25 @@ export default function App() {
       <View style={styles.barStyle}>
         <Text style={styles.txtStyle}>电影列表</Text>
       </View>
+    );
+  }
+
+  // SectionList 两个属性处理方法
+  function renderSectionHeader({ section }) {
+    return (
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{section.title}</Text>
+      </View>
+    );
+  }
+  function renderItem({ item }) {
+    return (
+      <MovieItemCell
+        movie={item}
+        onPress={() => {
+          alert("点击电影:" + item.title);
+        }}
+      />
     );
   }
 
@@ -68,7 +102,7 @@ export default function App() {
   }
 
   // 下拉刷新对应的方法
-  function beginHeaderRefresh(){
+  function beginHeaderRefresh() {
     // 下拉刷新所对应的行为
     // 从服务器去获取新的数据
     // 由于我们没有服务器，所以我们这里做一个模拟，随机返回两条数据
@@ -83,51 +117,67 @@ export default function App() {
   }
 
   // 上拉加载对应的方法
-  function beginFooterRefresh(){
+  function beginFooterRefresh() {
     setIsFooterRefreshing(true);
-    if(currentPage < totalPage){
+    if (currentPage < totalPage) {
       currentPage++;
       const newMovie = queryMovies(currentPage, pageSize); // 查询对应页码的新数据
       const data = [...movieList, ...newMovie];
       setTimeout(() => {
         setMovieList(data);
         setIsFooterRefreshing(false);
-      }, 1000)
+      }, 1000);
     }
   }
 
   // 渲染列表
   function renderList() {
     return (
-      <FlatList 
-        data={movieList}
-        renderItem={({ item }) => <MovieItemCell movie={item} onPress={()=>{
-          alert("点击的电影名：" + item.title);
-        }}/>}
-        keyExtractor={(item) => item.id + (new Date()).getTime() + Math.floor(Math.random() * 9999 + 1)}
-        refreshing={isHeaderRefreshing}
-        onRefresh={beginHeaderRefresh}
-        onEndReached={beginFooterRefresh}
-        onEndReachedThreshold={0.1}
+      // <FlatList
+      //   data={movieList}
+      //   renderItem={({ item }) => (
+      //     <MovieItemCell
+      //       movie={item}
+      //       onPress={() => {
+      //         alert("点击的电影名：" + item.title);
+      //       }}
+      //     />
+      //   )}
+      //   keyExtractor={(item) =>
+      //     item.id + new Date().getTime() + Math.floor(Math.random() * 9999 + 1)
+      //   }
+      //   refreshing={isHeaderRefreshing}
+      //   onRefresh={beginHeaderRefresh}
+      //   onEndReached={beginFooterRefresh}
+      //   onEndReachedThreshold={0.1}
+      // />
+      // <Text>123</Text>
+
+      <SectionList
+        keyExtractor={(item) => item.id}
+        renderSectionHeader={renderSectionHeader}
+        renderItem={renderItem}
+        sections={sectionData}
+        stickySectionHeadersEnabled={true}
       />
-    )
+    );
   }
 
-  function renderFooterLoad(){
-    if(isFooterRefreshing){
+  function renderFooterLoad() {
+    if (isFooterRefreshing) {
       return (
         <View style={styles.footerStyle}>
           <ActivityIndicator size="small" color="#268dcd" />
-            <Text
-              style={{
-                color: "#666",
-                paddingLeft: 10,
-              }}
-            >
-              努力加载中
-            </Text>
+          <Text
+            style={{
+              color: "#666",
+              paddingLeft: 10,
+            }}
+          >
+            努力加载中
+          </Text>
         </View>
-      )
+      );
     }
   }
 
@@ -174,5 +224,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff",
+  },
+  sectionHeader: {
+    padding: 10,
+    backgroundColor: "#268dcd",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
