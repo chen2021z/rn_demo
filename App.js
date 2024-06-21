@@ -1,58 +1,50 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import {Image, Button} from "react-native"
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import HomeScreen from "./views/HomeScreen";
 import DetailScreen from "./views/DetailScreen";
+import SettingScreen from "./views/SettingScreen";
+import ProfileScreen from "./views/ProfileScreen";
 
 // 创建一个栈导航器
-const Stack = createNativeStackNavigator();
+const HomeStack = createNativeStackNavigator();
+const SettingStack = createNativeStackNavigator();
+
+// 创建一个标签页导航
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: "#f4511e",
-          },
-          headerTintColor: "#fff",
-        }}
-      >
-        <Stack.Screen
-          name="HomeScreen"
-          component={HomeScreen}
-          options={{
-            // title: "主页",
-            // headerStyle: {
-            //   backgroundColor: '#f4511e',
-            // },
-            // headerTintColor: '#fff',
-            headerTitle : ()=>{
-              return (
-                // <Image
-                //   style={{width:30,height:30}}
-                //   source={require("./assets/logo.jpg")}
-                // />
-                <Button title="主页按钮"/>
-              )
-            }
-          }}
-        />
-        <Stack.Screen
-          name="DetailScreen"
-          component={DetailScreen}
-          // options={{
-          //   title: "详情页"
-          // }}
-          // initialParams={{
-          //   name : "謝傑"
-          // }}
-          options={({ route }) => ({
-            title: route.params.name,
-          })}
-        />
-      </Stack.Navigator>
+      <Tab.Navigator screenOptions={{ headerShown: false }}>
+        {/* 第一个标签页 */}
+        <Tab.Screen name="First">
+          {/* 里面嵌套一个栈导航器 */}
+          {() => (
+            <HomeStack.Navigator>
+              <HomeStack.Screen name="HomeScreen" component={HomeScreen} />
+              <HomeStack.Screen name="DetailScreen" component={DetailScreen} />
+            </HomeStack.Navigator>
+          )}
+        </Tab.Screen>
+        {/* 第二个标签页 */}
+        <Tab.Screen name="Second">
+          {/* 里面嵌套一个栈导航器 */}
+          {() => (
+            <SettingStack.Navigator>
+              <SettingStack.Screen
+                name="SettingScreen"
+                component={SettingScreen}
+              />
+              <SettingStack.Screen
+                name="ProfileScreen"
+                component={ProfileScreen}
+              />
+            </SettingStack.Navigator>
+          )}
+        </Tab.Screen>
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
