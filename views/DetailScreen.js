@@ -11,7 +11,6 @@ export default function DetailScreen({navigation, route}){
 
     const [postContent, setPostContent] = useState("");
 
-    console.log(route, 22222222222222);
     const {id, name, age} = route.params;
 
     function pressHandle(){
