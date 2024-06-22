@@ -1,24 +1,46 @@
-// 引入 createSlice 方法
 import { createSlice } from "@reduxjs/toolkit";
 
-// 从这个方法名我们可以看出这是创建一个切片
-// 这个切片里面就包含了一系列信息
-const counterSlice = createSlice({
-  name: "counter",
-  // 初始化状态
+export const counterSlice = createSlice({
+  name: "todolist",
   initialState: {
-    value: 0,
+    listItem: [
+      {
+        title: "看书",
+        isCompleted: false,
+      },
+      {
+        title: "写字",
+        isCompleted: false,
+      },
+      {
+        title: "玩游戏",
+        isCompleted: true,
+      },
+    ],
   },
   reducers: {
-    increment: (state) => {
-      state.value += 1;
+    increment: (state, action) => {
+      let arr = [...state.listItem];
+      arr.push({
+        title: action.payload,
+        isCompleted: false,
+      });
+      state.listItem = arr;
     },
-    decrement: (state) => {
-      state.value -= 1;
+    changeCompleteStatus: (state, action) => {
+      let arr = [...state.listItem];
+      arr[action.payload].isCompleted = !arr[action.payload].isCompleted;
+      state.listItem = arr;
+    },
+    decrement: (state,action) => {
+      let arr = [...state.listItem];
+      arr.splice(action.payload,1);
+      state.listItem  =arr;
     },
   },
 });
 
-export const { increment, decrement } = counterSlice.actions;
+// Action creators are generated for each case reducer function
+export const { increment, decrement, changeCompleteStatus } = counterSlice.actions;
 
 export default counterSlice.reducer;
